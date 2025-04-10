@@ -20,18 +20,22 @@ export default function AuthForm({ isLogin }: Props) {
     email: "",
     password: "",
   });
+
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setMsg("");
+
     try {
       const endpoint = isLogin ? "/login" : "/signup";
       const { data } = await axios.post(
@@ -42,13 +46,13 @@ export default function AuthForm({ isLogin }: Props) {
 
       if (isLogin) {
         setMsg(`✅ Welcome ${data.user.name}`);
-        router.push("/");
+        router.push("/dashboard");
       } else {
         setMsg("✅ Signup successful. Please check your email to verify.");
         setSuccess(true);
       }
     } catch (err: any) {
-      setMsg(`❌ ${err.response?.data?.msg || "Error occurred"}`);
+      setMsg(`❌ ${err.response?.data?.msg || "Something went wrong."}`);
     } finally {
       setLoading(false);
     }
@@ -68,13 +72,14 @@ export default function AuthForm({ isLogin }: Props) {
       <h2 className="text-2xl font-bold text-center">
         {isLogin ? "Sign In" : "Sign Up"}
       </h2>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isLogin && (
           <input
             type="text"
             name="name"
             placeholder="Name"
-            className="w-full border rounded px-3 py-2 text-black"
+            className="w-full border rounded px-3 py-2"
             onChange={handleChange}
             required
           />
@@ -83,7 +88,7 @@ export default function AuthForm({ isLogin }: Props) {
           type="email"
           name="email"
           placeholder="Email"
-          className="w-full border rounded px-3 py-2 text-black"
+          className="w-full border rounded px-3 py-2"
           onChange={handleChange}
           required
         />
@@ -91,19 +96,21 @@ export default function AuthForm({ isLogin }: Props) {
           type="password"
           name="password"
           placeholder="Password"
-          className="w-full border rounded px-3 py-2 text-black"
+          className="w-full border rounded px-3 py-2"
           onChange={handleChange}
           required
         />
+
         <button
           type="submit"
-          className="w-full bg-black text-white py-2 rounded hover:opacity-90"
+          className={`w-full py-2 rounded text-white ${loading ? "bg-gray-500" : "bg-black hover:opacity-90"}`}
           disabled={loading}
         >
           {loading ? "Processing..." : isLogin ? "Sign In" : "Sign Up"}
         </button>
       </form>
-      {msg && <p className="text-center text-sm text-black">{msg}</p>}
+
+      {msg && <p className="text-center text-sm">{msg}</p>}
     </div>
   );
 }

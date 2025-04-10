@@ -28,28 +28,20 @@ const sendVerificationEmail = async (user, req) => {
     },
   });
 
-  try {
-    await transporter.sendMail({
-      from: `Your App <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: "Verify Your Email",
-      html: `<p>Hello ${user.name},</p><p>Please verify your email:</p><a href="${verificationURL}">${verificationURL}</a>`
-    });
-  } catch (emailErr) {
-    console.error("Email sending failed:", emailErr);
-    throw new Error("Failed to send verification email");
-  }
+  await transporter.sendMail({
+    from: `Advanced Auth <${process.env.EMAIL_USER}>`,
+    to: user.email,
+    subject: "Verify Your Email",
+    html: `<p>Hello ${user.name},</p><p>Please verify your email:</p><a href="${verificationURL}">${verificationURL}</a>`,
+  });
 };
 
 // Signup
 router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
-  console.log("Signup attempt:", { name, email });
-
   try {
     const userExists = await User.findOne({ email });
     if (userExists) {
-      console.warn("User already exists:", email);
       return res.status(400).json({ msg: "User already exists" });
     }
 
@@ -57,7 +49,6 @@ router.post("/signup", async (req, res) => {
     const user = await User.create({ name, email, password: hashedPassword });
 
     await sendVerificationEmail(user, req);
-
     res.status(201).json({ msg: "Signup successful. Please check your email to verify." });
   } catch (err) {
     console.error("Signup error:", err);
@@ -91,8 +82,6 @@ router.get("/verify-email", async (req, res) => {
 // Login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  console.log("Login attempt:", email);
-
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ msg: "Invalid credentials" });
@@ -124,6 +113,23 @@ router.post("/login", async (req, res) => {
 router.post("/logout", (req, res) => {
   res.clearCookie("token");
   res.status(200).json({ msg: "Logged out" });
+});
+
+// Get Current Logged-in User
+router.get("/me", async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ msg: "Unauthorized" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    res.status(200).json({ user });
+  } catch (err) {
+    console.error("Auth /me error:", err);
+    res.status(401).json({ msg: "Invalid or expired token" });
+  }
 });
 
 export default router;

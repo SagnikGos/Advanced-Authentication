@@ -9,7 +9,7 @@ const app = express();
 
 app.use(
     cors({
-      origin: "http://localhost:3001", // or process.env.CLIENT_URL if set
+      origin: "http://localhost:3000", // or process.env.CLIENT_URL if set
       credentials: true,
     })
   );
