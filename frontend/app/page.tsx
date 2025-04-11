@@ -17,7 +17,7 @@ export default function Home() {
     // Simulate navigation delay
     setTimeout(() => {
       router.push(route);
-    }, 1500);
+    }, 500);
   };
 
   return (
