@@ -62,7 +62,7 @@ export default function AuthForm({ isLogin }: Props) {
     if (success) {
       const timeout = setTimeout(() => {
         router.push("/verify-info");
-      }, 3000);
+      }, 2000);
       return () => clearTimeout(timeout);
     }
   }, [success, router]);
