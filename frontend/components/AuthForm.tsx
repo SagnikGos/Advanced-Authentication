@@ -45,7 +45,14 @@ export default function AuthForm({ isLogin }: Props) {
       );
 
       if (isLogin) {
-        setMsg(`✅ Welcome ${data.user.name}`);
+        // ✅ Confirm if the cookie is working by calling /me
+        const meRes = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
+          { withCredentials: true }
+        );
+        console.log("✅ /me response:", meRes.data);
+
+        setMsg(`✅ Welcome ${meRes.data.user.name}`);
         router.push("/dashboard");
       } else {
         setMsg("✅ Signup successful. Please check your email to verify.");
@@ -103,7 +110,9 @@ export default function AuthForm({ isLogin }: Props) {
 
         <button
           type="submit"
-          className={`w-full py-2 rounded text-white ${loading ? "bg-gray-500" : "bg-black hover:opacity-90"}`}
+          className={`w-full py-2 rounded text-white ${
+            loading ? "bg-gray-500" : "bg-black hover:opacity-90"
+          }`}
           disabled={loading}
         >
           {loading ? "Processing..." : isLogin ? "Sign In" : "Sign Up"}
