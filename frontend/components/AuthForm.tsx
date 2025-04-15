@@ -42,18 +42,13 @@ export default function AuthForm({ isLogin }: Props) {
 
       const { data } = await axios.post(
         `${apiUrl}/api/auth${endpoint}`,
-        form
+        form,
+        { withCredentials: true }
       );
 
       if (isLogin) {
-        // Save token
-        localStorage.setItem("token", data.token);
-
-        // Fetch user using the token
         const meRes = await axios.get(`${apiUrl}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${data.token}`,
-          },
+          withCredentials: true,
         });
 
         setMsg(`✅ Welcome ${meRes.data.user.name}`);
