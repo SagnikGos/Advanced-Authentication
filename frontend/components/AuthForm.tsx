@@ -45,7 +45,7 @@ export default function AuthForm({ isLogin }: Props) {
       );
 
       if (isLogin) {
-        // ✅ Confirm if the cookie is working by calling /me
+        
         const meRes = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
           { withCredentials: true }
@@ -120,6 +120,11 @@ export default function AuthForm({ isLogin }: Props) {
       </form>
 
       {msg && <p className="text-center text-sm">{msg}</p>}
+      {isLogin && (
+      <p className="text-xs text-center text-gray-500">
+        ⚠️ Please make sure 3rd-party cookies are enabled to sign in. (WHY? Read Github Readme)
+      </p>
+    )}
     </div>
   );
 }
