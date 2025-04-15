@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
@@ -20,6 +20,7 @@ export default function AuthForm({ isLogin }: Props) {
     email: "",
     password: "",
   });
+
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -37,19 +38,19 @@ export default function AuthForm({ isLogin }: Props) {
 
     try {
       const endpoint = isLogin ? "/login" : "/signup";
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      if (!apiUrl) throw new Error("API URL not defined");
-
       const { data } = await axios.post(
-        `${apiUrl}/api/auth${endpoint}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth${endpoint}`,
         form,
         { withCredentials: true }
       );
 
       if (isLogin) {
-        const meRes = await axios.get(`${apiUrl}/api/auth/me`, {
-          withCredentials: true,
-        });
+        // ✅ Confirm if the cookie is working by calling /me
+        const meRes = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
+          { withCredentials: true }
+        );
+        console.log("✅ /me response:", meRes.data);
 
         setMsg(`✅ Welcome ${meRes.data.user.name}`);
         router.push("/dashboard");
@@ -58,9 +59,7 @@ export default function AuthForm({ isLogin }: Props) {
         setSuccess(true);
       }
     } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.msg || err.message || "Something went wrong.";
-      setMsg(`❌ ${errorMessage}`);
+      setMsg(`❌ ${err.response?.data?.msg || "Something went wrong."}`);
     } finally {
       setLoading(false);
     }
@@ -70,7 +69,7 @@ export default function AuthForm({ isLogin }: Props) {
     if (success) {
       const timeout = setTimeout(() => {
         router.push("/verify-info");
-      }, 3000);
+      }, 2000);
       return () => clearTimeout(timeout);
     }
   }, [success, router]);
@@ -89,7 +88,6 @@ export default function AuthForm({ isLogin }: Props) {
             placeholder="Name"
             className="w-full border rounded px-3 py-2"
             onChange={handleChange}
-            value={form.name}
             required
           />
         )}
@@ -99,7 +97,6 @@ export default function AuthForm({ isLogin }: Props) {
           placeholder="Email"
           className="w-full border rounded px-3 py-2"
           onChange={handleChange}
-          value={form.email}
           required
         />
         <input
@@ -108,13 +105,12 @@ export default function AuthForm({ isLogin }: Props) {
           placeholder="Password"
           className="w-full border rounded px-3 py-2"
           onChange={handleChange}
-          value={form.password}
           required
         />
 
         <button
           type="submit"
-          className={`w-full py-2 rounded text-white transition ${
+          className={`w-full py-2 rounded text-white ${
             loading ? "bg-gray-500" : "bg-black hover:opacity-90"
           }`}
           disabled={loading}

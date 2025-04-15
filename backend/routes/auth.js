@@ -3,9 +3,11 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import cookieParser from "cookie-parser";
 import User from "../models/User.js";
 
 const router = express.Router();
+router.use(cookieParser());
 
 // Helper: Send verification email
 const sendVerificationEmail = async (user, req) => {
@@ -39,7 +41,9 @@ router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
   try {
     const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ msg: "User already exists" });
+    if (userExists) {
+      return res.status(400).json({ msg: "User already exists" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = await User.create({ name, email, password: hashedPassword });
@@ -91,32 +95,33 @@ router.post("/login", async (req, res) => {
       expiresIn: process.env.JWT_EXPIRES_IN || "7d",
     });
 
-    res.status(200).json({
-      token,
-      user: { id: user._id, name: user.name, email: user.email },
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
+    res.status(200).json({ user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ msg: "Server error", error: err.message });
   }
 });
 
-// Logout 
-router.post("/logout", (_req, res) => {
+// Logout
+router.post("/logout", (req, res) => {
+  res.clearCookie("token");
   res.status(200).json({ msg: "Logged out" });
 });
 
-// Get Current User
+// Get Current Logged-in User
 router.get("/me", async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ msg: "Unauthorized" });
-    }
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ msg: "Unauthorized" });
 
-    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
     const user = await User.findById(decoded.id).select("-password");
     if (!user) return res.status(404).json({ msg: "User not found" });
 
