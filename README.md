@@ -48,6 +48,7 @@ This repository contains a full-stack authentication system built with a Next.js
     * A JSON Web Token (JWT) is generated using `jsonwebtoken`. This token contains user identifiers (like user ID, role, etc.) and an expiration time.
     * The JWT is set as an HTTP-only cookie in the response headers. HTTP-only prevents client-side JavaScript from accessing the cookie, mitigating XSS attacks. Secure and SameSite attributes should also be set for production.
     * The backend sends a success response, often redirecting the user to their dashboard or the homepage on the frontend. The browser automatically stores the cookie.
+    * ALLOW 3rd PARTY COOKIES: The frontend and backend of the website is hosted in different domains, the browser treats requests between them as cross-origin requests. By default, the browser blocks cross-origin requests from sharing cookies for security reasons. This is because cookies are typically used for maintaining user sessions and are considered sensitive data.
 
 ### 4. Logout Flow
 1.  The user clicks the logout button on the frontend.
@@ -60,7 +61,7 @@ This repository contains a full-stack authentication system built with a Next.js
 ### Frontend (Client)
 * **Framework:** [Next.js](https://nextjs.org/) (using App Router)
 * **Language:** [TypeScript](https://www.typescriptlang.org/)
-* **Styling:** [Tailwind CSS](https://tailwindcss.com/) (Optional, easily replaceable)
+* **Styling:** [Tailwind CSS](https://tailwindcss.com/) 
 * **API Requests:** [Axios](https://axios-http.com/)
 * **State Management:** React Hooks (`useState`, `useEffect`, `useContext` etc.)
 
